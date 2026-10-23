@@ -1,0 +1,26 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "Eclera Combined API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "migrate:specifications": "node admin_panel/modules/specification/migration.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1150.0",
+    "@aws-sdk/s3-request-presigner": "^3.1150.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "joi": "^17.13.8",
+    "mongoose": "^9.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

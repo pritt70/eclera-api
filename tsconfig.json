@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.d.ts",
+    "**/*.js"
+  ]
+}
