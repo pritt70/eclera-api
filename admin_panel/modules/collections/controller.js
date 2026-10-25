@@ -109,11 +109,20 @@ export const list = async (req, res) => {
             .populate('specifications.options', '_id name sort_order')
             .lean();
 
+        const normalizedCollections = collections.map((col) => {
+            const imgUrl = (col.image?.url || col.image?.publicUrl || '').trim();
+            const imgKey = (col.image?.key || '').trim();
+            return {
+                ...col,
+                image: imgUrl ? { url: imgUrl, publicUrl: imgUrl, key: imgKey } : { url: '', publicUrl: '', key: '' },
+            };
+        });
+
         return res.status(200).json({
             status: true,
             message: 'Collections fetched successfully',
             data: {
-                collections,
+                collections: normalizedCollections,
                 pagination: {
                     total,
                     page,
@@ -176,10 +185,16 @@ export const getById = async (req, res) => {
             });
         }
 
+        const colImgUrl = (collection.image?.url || collection.image?.publicUrl || '').trim();
+        const colImgKey = (collection.image?.key || '').trim();
+
         return res.status(200).json({
             status: true,
             message: 'Collection details fetched successfully',
-            data: collection,
+            data: {
+                ...collection,
+                image: colImgUrl ? { url: colImgUrl, publicUrl: colImgUrl, key: colImgKey } : { url: '', publicUrl: '', key: '' },
+            },
         });
     } catch (error) {
         console.error('Error fetching collection:', error);
@@ -225,13 +240,16 @@ export const create = async (req, res) => {
         const slug = await generateUniqueSlug(baseSlug);
 
         // Normalize image
-        let image = { url: '', key: '' };
+        let image = { url: '', publicUrl: '', key: '' };
         if (value.image) {
             if (typeof value.image === 'string') {
-                image = { url: value.image, key: '' };
-            } else if (typeof value.image === 'object') {
+                const u = value.image.trim();
+                image = { url: u, publicUrl: u, key: '' };
+            } else if (typeof value.image === 'object' && value.image !== null) {
+                const u = String(value.image.url || value.image.publicUrl || '').trim();
                 image = {
-                    url: value.image.url || '',
+                    url: u,
+                    publicUrl: u,
                     key: value.image.key || '',
                 };
             }
@@ -362,12 +380,17 @@ export const update = async (req, res) => {
 
         if (value.image !== undefined) {
             if (typeof value.image === 'string') {
-                existing.image = { url: value.image, key: '' };
+                const u = value.image.trim();
+                existing.image = { url: u, publicUrl: u, key: '' };
             } else if (typeof value.image === 'object' && value.image !== null) {
+                const u = String(value.image.url || value.image.publicUrl || '').trim();
                 existing.image = {
-                    url: value.image.url || '',
+                    url: u,
+                    publicUrl: u,
                     key: value.image.key || '',
                 };
+            } else {
+                existing.image = { url: '', publicUrl: '', key: '' };
             }
         }
 

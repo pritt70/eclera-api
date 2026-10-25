@@ -52,11 +52,15 @@ function parseProductImages(images) {
         .map((img) => {
             if (!img) return null;
             if (typeof img === 'string') {
-                return { url: img.trim(), key: '' };
+                const u = img.trim();
+                return { url: u, publicUrl: u, key: '' };
             }
-            if (typeof img === 'object' && img.url) {
+            if (typeof img === 'object') {
+                const u = String(img.url || img.publicUrl || '').trim();
+                if (!u && !img.key) return null;
                 return {
-                    url: String(img.url).trim(),
+                    url: u,
+                    publicUrl: u,
                     key: img.key ? String(img.key).trim() : '',
                 };
             }
@@ -173,11 +177,25 @@ export const list = async (req, res) => {
 
         const totalPages = Math.ceil(total / limit) || 1;
 
+        const normalizedProducts = products.map((p) => {
+            const normImgs = Array.isArray(p.images)
+                ? p.images.map((img) => {
+                    const u = String(img?.url || img?.publicUrl || (typeof img === 'string' ? img : '')).trim();
+                    const k = String(img?.key || '').trim();
+                    return { url: u, publicUrl: u, key: k };
+                })
+                : [];
+            return {
+                ...p,
+                images: normImgs,
+            };
+        });
+
         return res.status(200).json({
             status: true,
             message: 'Products retrieved successfully',
             data: {
-                products,
+                products: normalizedProducts,
                 pagination: {
                     total,
                     page,
@@ -228,6 +246,14 @@ export const getById = async (req, res) => {
             return res.status(404).json({
                 status: false,
                 message: 'Product not found',
+            });
+        }
+
+        if (Array.isArray(product.images)) {
+            product.images = product.images.map((img) => {
+                const u = String(img?.url || img?.publicUrl || (typeof img === 'string' ? img : '')).trim();
+                const k = String(img?.key || '').trim();
+                return { url: u, publicUrl: u, key: k };
             });
         }
 
@@ -321,7 +347,6 @@ export const create = async (req, res) => {
             category: value.category,
             collections: value.collections || [],
             description: value.description ? value.description.trim() : '',
-            shortDescription: value.shortDescription ? value.shortDescription.trim() : '',
             price: Number(value.price) || 0,
             comparePrice: Number(value.comparePrice) || 0,
             costPrice: Number(value.costPrice) || 0,
@@ -433,7 +458,6 @@ export const update = async (req, res) => {
         if (value.sku !== undefined) existing.sku = value.sku.trim();
         if (value.barcode !== undefined) existing.barcode = value.barcode.trim();
         if (value.description !== undefined) existing.description = value.description.trim();
-        if (value.shortDescription !== undefined) existing.shortDescription = value.shortDescription.trim();
         if (value.price !== undefined) existing.price = Number(value.price) || 0;
         if (value.comparePrice !== undefined) existing.comparePrice = Number(value.comparePrice) || 0;
         if (value.costPrice !== undefined) existing.costPrice = Number(value.costPrice) || 0;

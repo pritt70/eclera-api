@@ -53,7 +53,7 @@ const bannerSchema = new mongoose.Schema(
         },
         position: {
             type: String,
-            enum: ['home_hero', 'home_middle', 'home_bottom', 'category_top', 'promo_popup'],
+            enum: ['home_hero', 'home_middle', 'home_bottom', 'category_top', 'promo_popup', 'auth_popup', 'login_popup'],
             default: 'home_hero',
             trim: true,
         },

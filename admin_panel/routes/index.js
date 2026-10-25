@@ -11,6 +11,7 @@ import discountRouter from '../modules/discount/routes.js';
 import orderRouter from '../modules/order/routes.js';
 import abandonedCartRouter from '../modules/abandoned_cart/routes.js';
 import policyRouter from '../modules/policy/routes.js';
+import announcementRouter from '../modules/announcement/routes.js';
 
 const router = express.Router();
 
@@ -42,5 +43,7 @@ router.use('/abandoned-carts', abandonedCartRouter);
 router.use('/abandoned_cart', abandonedCartRouter);
 router.use('/policy', policyRouter);
 router.use('/policies', policyRouter);
+router.use('/announcement', announcementRouter);
+router.use('/announcements', announcementRouter);
 
 export default router;

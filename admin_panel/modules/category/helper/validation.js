@@ -15,8 +15,9 @@ export function validateCreate(data) {
             .try(
                 Joi.object({
                     url: Joi.string().allow('', null).optional(),
+                    publicUrl: Joi.string().allow('', null).optional(),
                     key: Joi.string().allow('', null).optional(),
-                }),
+                }).unknown(true),
                 Joi.string().allow('', null)
             )
             .allow(null)
@@ -66,8 +67,9 @@ export function validateUpdate(data) {
             .try(
                 Joi.object({
                     url: Joi.string().allow('', null).optional(),
+                    publicUrl: Joi.string().allow('', null).optional(),
                     key: Joi.string().allow('', null).optional(),
-                }),
+                }).unknown(true),
                 Joi.string().allow('', null)
             )
             .allow(null)

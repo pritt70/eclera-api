@@ -14,7 +14,6 @@ export function validateCreate(data) {
         category: objectId.required().label('Category'),
         collections: Joi.array().items(objectId).optional().default([]).label('Collections'),
         description: Joi.string().trim().allow('', null).optional().label('Description'),
-        shortDescription: Joi.string().trim().allow('', null).optional().label('Short Description'),
         price: Joi.number().min(0).required().label('Price'),
         comparePrice: Joi.number().min(0).allow(null).optional().default(0).label('Compare Price'),
         costPrice: Joi.number().min(0).allow(null).optional().default(0).label('Cost Price'),
@@ -25,8 +24,9 @@ export function validateCreate(data) {
                 Joi.alternatives().try(
                     Joi.object({
                         url: Joi.string().allow('', null).optional(),
+                        publicUrl: Joi.string().allow('', null).optional(),
                         key: Joi.string().allow('', null).optional(),
-                    }),
+                    }).unknown(true),
                     Joi.string().allow('', null)
                 )
             )
@@ -63,8 +63,9 @@ export function validateCreate(data) {
             swatchColor: Joi.string().trim().allow('', null).optional(),
             swatchImage: Joi.object({
                 url: Joi.string().allow('', null).optional(),
+                publicUrl: Joi.string().allow('', null).optional(),
                 key: Joi.string().allow('', null).optional(),
-            }).optional(),
+            }).unknown(true).optional(),
             linkedProducts: Joi.array().items(objectId).optional().default([]),
         })
             .optional()
@@ -87,7 +88,6 @@ export function validateUpdate(data) {
         category: objectId.optional().label('Category'),
         collections: Joi.array().items(objectId).optional().label('Collections'),
         description: Joi.string().trim().allow('', null).optional().label('Description'),
-        shortDescription: Joi.string().trim().allow('', null).optional().label('Short Description'),
         price: Joi.number().min(0).optional().label('Price'),
         comparePrice: Joi.number().min(0).allow(null).optional().label('Compare Price'),
         costPrice: Joi.number().min(0).allow(null).optional().label('Cost Price'),
@@ -98,8 +98,9 @@ export function validateUpdate(data) {
                 Joi.alternatives().try(
                     Joi.object({
                         url: Joi.string().allow('', null).optional(),
+                        publicUrl: Joi.string().allow('', null).optional(),
                         key: Joi.string().allow('', null).optional(),
-                    }),
+                    }).unknown(true),
                     Joi.string().allow('', null)
                 )
             )
@@ -134,8 +135,9 @@ export function validateUpdate(data) {
             swatchColor: Joi.string().trim().allow('', null).optional(),
             swatchImage: Joi.object({
                 url: Joi.string().allow('', null).optional(),
+                publicUrl: Joi.string().allow('', null).optional(),
                 key: Joi.string().allow('', null).optional(),
-            }).optional(),
+            }).unknown(true).optional(),
             linkedProducts: Joi.array().items(objectId).optional(),
         }).optional(),
         status: Joi.string().valid('active', 'inactive').optional().label('Status'),

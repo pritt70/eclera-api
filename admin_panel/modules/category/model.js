@@ -42,6 +42,11 @@ const categorySchema = new mongoose.Schema(
                 trim: true,
                 default: '',
             },
+            publicUrl: {
+                type: String,
+                trim: true,
+                default: '',
+            },
             key: {
                 type: String,
                 trim: true,

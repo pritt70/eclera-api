@@ -158,11 +158,16 @@ export const list = async (req, res) => {
             productCountMap = new Map();
         }
 
-        const categoriesWithStats = categories.map((c) => ({
-            ...c,
-            subcategoriesCount: subCountMap.get(c._id.toString()) || 0,
-            productsCount: productCountMap.get(c._id.toString()) || 0,
-        }));
+        const categoriesWithStats = categories.map((c) => {
+            const imgUrl = (c.image?.url || c.image?.publicUrl || '').trim();
+            const imgKey = (c.image?.key || '').trim();
+            return {
+                ...c,
+                image: imgUrl ? { url: imgUrl, publicUrl: imgUrl, key: imgKey } : { url: '', publicUrl: '', key: '' },
+                subcategoriesCount: subCountMap.get(c._id.toString()) || 0,
+                productsCount: productCountMap.get(c._id.toString()) || 0,
+            };
+        });
 
         const totalPages = Math.ceil(total / limit) || 1;
 
@@ -240,11 +245,15 @@ export const getById = async (req, res) => {
             productsCount = 0;
         }
 
+        const catImgUrl = (category.image?.url || category.image?.publicUrl || '').trim();
+        const catImgKey = (category.image?.key || '').trim();
+
         return res.status(200).json({
             status: true,
             message: 'Category fetched successfully',
             data: {
                 ...category,
+                image: catImgUrl ? { url: catImgUrl, publicUrl: catImgUrl, key: catImgKey } : { url: '', publicUrl: '', key: '' },
                 subcategoriesCount,
                 productsCount,
             },
@@ -315,14 +324,17 @@ export const create = async (req, res) => {
             assignedSortOrder = count;
         }
 
-        let imageObj = { url: '', key: '' };
+        let imageObj = { url: '', publicUrl: '', key: '' };
         if (typeof image === 'object' && image !== null) {
+            const u = (image.url || image.publicUrl || '').trim();
             imageObj = {
-                url: (image.url || '').trim(),
+                url: u,
+                publicUrl: u,
                 key: (image.key || '').trim(),
             };
         } else if (typeof image === 'string') {
-            imageObj = { url: image.trim(), key: '' };
+            const u = image.trim();
+            imageObj = { url: u, publicUrl: u, key: '' };
         }
 
         const { specifications } = value;
@@ -469,17 +481,21 @@ export const update = async (req, res) => {
 
         if (image !== undefined) {
             if (typeof image === 'object' && image !== null) {
+                const u = (image.url || image.publicUrl || '').trim();
                 category.image = {
-                    url: (image.url || '').trim(),
+                    url: u,
+                    publicUrl: u,
                     key: (image.key || '').trim(),
                 };
             } else if (typeof image === 'string') {
+                const u = image.trim();
                 category.image = {
-                    url: image.trim(),
+                    url: u,
+                    publicUrl: u,
                     key: '',
                 };
             } else {
-                category.image = { url: '', key: '' };
+                category.image = { url: '', publicUrl: '', key: '' };
             }
         }
 

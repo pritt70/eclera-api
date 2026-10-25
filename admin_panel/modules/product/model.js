@@ -50,6 +50,7 @@ const productGroupSchema = new mongoose.Schema(
         },
         swatchImage: {
             url: { type: String, trim: true, default: '' },
+            publicUrl: { type: String, trim: true, default: '' },
             key: { type: String, trim: true, default: '' },
         },
         linkedProducts: [
@@ -102,11 +103,6 @@ const productSchema = new mongoose.Schema(
             trim: true,
             default: '',
         },
-        shortDescription: {
-            type: String,
-            trim: true,
-            default: '',
-        },
         price: {
             type: Number,
             required: [true, 'Price is required'],
@@ -135,6 +131,7 @@ const productSchema = new mongoose.Schema(
         images: [
             {
                 url: { type: String, trim: true, default: '' },
+                publicUrl: { type: String, trim: true, default: '' },
                 key: { type: String, trim: true, default: '' },
             },
         ],

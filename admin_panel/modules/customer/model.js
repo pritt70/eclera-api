@@ -47,10 +47,15 @@ const addressSchema = new mongoose.Schema(
 
 const customerSchema = new mongoose.Schema(
     {
+        fullName: {
+            type: String,
+            trim: true,
+            default: '',
+        },
         firstName: {
             type: String,
-            required: [true, 'First name is required'],
             trim: true,
+            default: '',
         },
         lastName: {
             type: String,
@@ -59,12 +64,40 @@ const customerSchema = new mongoose.Schema(
         },
         email: {
             type: String,
-            required: [true, 'Email address is required'],
-            unique: true,
             trim: true,
             lowercase: true,
+            default: '',
         },
         phone: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        password: {
+            type: String,
+            default: '',
+        },
+        country: {
+            type: String,
+            trim: true,
+            default: 'India',
+        },
+        state: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        city: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        postalCode: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        deliveryAddress: {
             type: String,
             trim: true,
             default: '',
@@ -108,10 +141,16 @@ const customerSchema = new mongoose.Schema(
 );
 
 // Search and performance indexes
-customerSchema.index({ email: 1 }, { unique: true });
-customerSchema.index({ phone: 1 });
+customerSchema.index(
+    { email: 1 },
+    { unique: true, partialFilterExpression: { email: { $type: 'string', $gt: '' } } }
+);
+customerSchema.index(
+    { phone: 1 },
+    { unique: true, partialFilterExpression: { phone: { $type: 'string', $gt: '' } } }
+);
 customerSchema.index({ status: 1, createdAt: -1 });
-customerSchema.index({ firstName: 'text', lastName: 'text', email: 'text', phone: 'text' });
+customerSchema.index({ firstName: 'text', lastName: 'text', fullName: 'text', email: 'text', phone: 'text' });
 
 const Customer = mongoose.models.Customer || mongoose.model('Customer', customerSchema);
 
