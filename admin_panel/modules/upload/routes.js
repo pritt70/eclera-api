@@ -8,7 +8,7 @@ const router = express.Router();
 router.post(
     '/direct',
     adminAuth,
-    express.raw({ type: ['image/*', 'application/octet-stream'], limit: '15mb' }),
+    express.raw({ type: ['image/*', 'video/*', 'application/octet-stream'], limit: '50mb' }),
     directUpload
 );
 

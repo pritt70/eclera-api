@@ -12,6 +12,7 @@ import orderRouter from '../modules/order/routes.js';
 import abandonedCartRouter from '../modules/abandoned_cart/routes.js';
 import policyRouter from '../modules/policy/routes.js';
 import announcementRouter from '../modules/announcement/routes.js';
+import socialRouter from '../modules/social/routes.js';
 
 const router = express.Router();
 
@@ -45,5 +46,7 @@ router.use('/policy', policyRouter);
 router.use('/policies', policyRouter);
 router.use('/announcement', announcementRouter);
 router.use('/announcements', announcementRouter);
+router.use('/social', socialRouter);
+router.use('/social-media', socialRouter);
 
 export default router;

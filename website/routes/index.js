@@ -49,7 +49,7 @@ router.get('/policy/:slug', getPublicPolicyBySlug);
 router.get('/categories', async (req, res) => {
     try {
         const categories = await Category.find({ status: 'active' })
-            .select('name slug image productsCount sortOrder')
+            .select('name slug image productsCount sortOrder description')
             .sort({ sortOrder: 1, name: 1 })
             .lean();
         return res.json({ status: true, data: categories });
@@ -235,7 +235,7 @@ router.get('/product/:slug', async (req, res) => {
             })
             .populate({
                 path: 'specifications.specification',
-                select: 'name is_variant is_veriant',
+                select: 'name displayName is_variant is_veriant',
             })
             .populate({
                 path: 'specifications.options',
@@ -287,6 +287,22 @@ router.post('/auth/customer', customerAuth);
 router.get('/customer/profile', getProfile);
 router.post('/customer/profile', updateProfile);
 router.put('/customer/profile', updateProfile);
+
+import { getProductReviews, createProductReview, getAllRecentReviews } from '../modules/review/controller.js';
+import { getPublicSocial } from '../../admin_panel/modules/social/controller.js';
+
+router.get('/reviews/all', getAllRecentReviews);
+router.get('/reviews/recent', getAllRecentReviews);
+router.get('/reviews', getAllRecentReviews);
+router.get('/reviews/:slug', getProductReviews);
+router.get('/product/:slug/reviews', getProductReviews);
+router.post('/reviews', createProductReview);
+router.post('/review', createProductReview);
+
+// Public Social Media Links & Posts for Homepage & Footer
+router.get('/social', getPublicSocial);
+router.get('/social-links', getPublicSocial);
+router.get('/social-feed', getPublicSocial);
 
 export default router;
 

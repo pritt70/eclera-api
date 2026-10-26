@@ -3,9 +3,16 @@ import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { getConfig } from '../../../../helper/config.js';
 
-export const ALLOWED_FOLDERS = ['products', 'categories', 'banners'];
-export const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+export const ALLOWED_FOLDERS = ['products', 'categories', 'banners', 'social'];
+export const ALLOWED_MIME_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'video/mp4',
+    'video/webm',
+    'video/quicktime',
+];
+export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB (supporting social videos)
 
 /**
  * Read R2 configuration from environment variables
@@ -75,11 +82,14 @@ export const buildObjectKey = (requestedFolder, fileName, contentType) => {
     if (contentType === 'image/jpeg') ext = 'jpg';
     else if (contentType === 'image/png') ext = 'png';
     else if (contentType === 'image/webp') ext = 'webp';
+    else if (contentType === 'video/mp4') ext = 'mp4';
+    else if (contentType === 'video/webm') ext = 'webm';
+    else if (contentType === 'video/quicktime') ext = 'mov';
     else if (fileName && typeof fileName === 'string') {
         const match = fileName.match(/\.([a-zA-Z0-9]+)$/);
         if (match) {
             const rawExt = match[1].toLowerCase();
-            if (['jpg', 'jpeg', 'png', 'webp'].includes(rawExt)) {
+            if (['jpg', 'jpeg', 'png', 'webp', 'mp4', 'webm', 'mov'].includes(rawExt)) {
                 ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
             }
         }
@@ -93,7 +103,7 @@ export const buildObjectKey = (requestedFolder, fileName, contentType) => {
  */
 export const isValidObjectKey = (key) => {
     if (!key || typeof key !== 'string') return false;
-    const pattern = new RegExp(`^(${ALLOWED_FOLDERS.join('|')})/\\d{4}/[0-9a-fA-F-]{36}\\.(jpg|jpeg|png|webp)$`);
+    const pattern = new RegExp(`^(${ALLOWED_FOLDERS.join('|')})/\\d{4}/[0-9a-fA-F-]{36}\\.(jpg|jpeg|png|webp|mp4|webm|mov)$`);
     return pattern.test(key);
 };
 

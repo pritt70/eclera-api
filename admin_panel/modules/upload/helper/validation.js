@@ -9,7 +9,7 @@ export function validatePresign(data) {
             .valid(...ALLOWED_MIME_TYPES)
             .required()
             .messages({
-                'any.only': 'Unsupported image format. Allowed formats: JPEG, PNG, WEBP',
+                'any.only': 'Unsupported format. Allowed formats: JPEG, PNG, WEBP, MP4, WEBM, MOV',
             })
             .label('Content Type'),
         fileSize: Joi.number()
@@ -18,7 +18,7 @@ export function validatePresign(data) {
             .max(MAX_FILE_SIZE)
             .required()
             .messages({
-                'number.max': 'File size exceeds maximum limit of 10MB',
+                'number.max': 'File size exceeds maximum limit of 50MB',
             })
             .label('File Size'),
         folder: Joi.string()
