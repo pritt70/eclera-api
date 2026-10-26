@@ -225,7 +225,7 @@ router.get('/product/:slug', async (req, res) => {
             .populate({
                 path: 'relatedProducts',
                 match: { status: 'active' },
-                select: 'name slug price comparePrice images category',
+                select: 'name slug price comparePrice images category flipkartUrl',
                 populate: { path: 'category', select: 'name slug' },
             })
             .populate({

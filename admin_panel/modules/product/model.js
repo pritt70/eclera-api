@@ -166,6 +166,11 @@ const productSchema = new mongoose.Schema(
             trim: true,
             default: '',
         },
+        flipkartUrl: {
+            type: String,
+            trim: true,
+            default: '',
+        },
     },
     {
         timestamps: true,

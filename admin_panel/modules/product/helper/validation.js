@@ -74,6 +74,7 @@ export function validateCreate(data) {
         sortOrder: Joi.number().integer().min(0).default(0).optional().label('Sort Order'),
         seoTitle: Joi.string().trim().max(250).allow('', null).optional().label('SEO Title'),
         seoDescription: Joi.string().trim().max(600).allow('', null).optional().label('SEO Description'),
+        flipkartUrl: Joi.string().trim().allow('', null).optional().label('Flipkart URL'),
     });
 
     return schema.validate(data, { abortEarly: false, allowUnknown: true });
@@ -144,6 +145,7 @@ export function validateUpdate(data) {
         sortOrder: Joi.number().integer().min(0).optional().label('Sort Order'),
         seoTitle: Joi.string().trim().max(250).allow('', null).optional().label('SEO Title'),
         seoDescription: Joi.string().trim().max(600).allow('', null).optional().label('SEO Description'),
+        flipkartUrl: Joi.string().trim().allow('', null).optional().label('Flipkart URL'),
     });
 
     return schema.validate(data, { abortEarly: false, allowUnknown: true });

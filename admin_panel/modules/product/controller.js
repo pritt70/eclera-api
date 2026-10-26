@@ -360,6 +360,7 @@ export const create = async (req, res) => {
             sortOrder: Number(value.sortOrder) || 0,
             seoTitle: value.seoTitle ? value.seoTitle.trim() : '',
             seoDescription: value.seoDescription ? value.seoDescription.trim() : '',
+            flipkartUrl: value.flipkartUrl ? value.flipkartUrl.trim() : '',
         });
 
         await newProduct.save();
@@ -467,6 +468,7 @@ export const update = async (req, res) => {
         if (value.sortOrder !== undefined) existing.sortOrder = Number(value.sortOrder) || 0;
         if (value.seoTitle !== undefined) existing.seoTitle = value.seoTitle.trim();
         if (value.seoDescription !== undefined) existing.seoDescription = value.seoDescription.trim();
+        if (value.flipkartUrl !== undefined) existing.flipkartUrl = value.flipkartUrl.trim();
 
         if (value.collections !== undefined) {
             existing.collections = Array.isArray(value.collections) ? value.collections : [];
