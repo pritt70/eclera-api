@@ -8,6 +8,7 @@ import {
     deleteProduct,
     changeStatus,
     reorder,
+    selectProduct,
 } from './controller.js';
 
 const router = express.Router();
@@ -18,6 +19,10 @@ router.use(adminAuth);
 // Reorder routes (must precede /:id)
 router.put('/reorder', reorder);
 router.post('/reorder', reorder);
+
+// Select product routes for category-based product search
+router.get('/select_product', selectProduct);
+router.post('/select_product', selectProduct);
 
 // List routes
 router.get('/', list);

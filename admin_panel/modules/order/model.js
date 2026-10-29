@@ -124,9 +124,19 @@ const orderSchema = new mongoose.Schema(
         },
         paymentMethod: {
             type: String,
-            enum: ['prepaid', 'advance', 'cod', 'online', 'card', 'upi', 'netbanking'],
-            default: 'prepaid',
+            enum: ['prepaid', 'advance', 'cod', 'online', 'card', 'upi', 'upi_qr', 'qr', 'netbanking'],
+            default: 'upi_qr',
             trim: true,
+        },
+        paymentScreenshot: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        utrNumber: {
+            type: String,
+            trim: true,
+            default: '',
         },
         paymentStatus: {
             type: String,

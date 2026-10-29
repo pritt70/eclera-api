@@ -52,6 +52,15 @@ export function validateCreate(data) {
             )
             .optional()
             .label('Specifications'),
+        products: Joi.array()
+            .items(Joi.alternatives().try(objectId, Joi.string()))
+            .min(1)
+            .required()
+            .messages({
+                'array.min': 'Please select at least one product for this collection.',
+                'any.required': 'At least one product is required for this collection.',
+            })
+            .label('Products'),
         status: Joi.string().valid('active', 'inactive').default('active').optional().label('Status'),
         sortOrder: Joi.number().integer().min(0).default(0).optional().label('Sort Order'),
         seoTitle: Joi.string().trim().max(200).allow('', null).optional().label('SEO Title'),
@@ -108,6 +117,14 @@ export function validateUpdate(data) {
             )
             .optional()
             .label('Specifications'),
+        products: Joi.array()
+            .items(Joi.alternatives().try(objectId, Joi.string()))
+            .min(1)
+            .messages({
+                'array.min': 'Please select at least one product for this collection.',
+            })
+            .optional()
+            .label('Products'),
         status: Joi.string().valid('active', 'inactive').optional().label('Status'),
         sortOrder: Joi.number().integer().min(0).optional().label('Sort Order'),
         seoTitle: Joi.string().trim().max(200).allow('', null).optional().label('SEO Title'),

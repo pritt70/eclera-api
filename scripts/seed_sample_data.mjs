@@ -278,20 +278,6 @@ async function run() {
             createdAt: new Date(),
             updatedAt: new Date(),
         },
-        {
-            title: 'Pure Botanical Luxury',
-            subtitle: 'Nourish Your Skin with Nature’s Essence — 100% Organic & Cruelty-Free',
-            image: uploaded.bannerMiddle,
-            mobileImage: uploaded.bannerMiddle,
-            link: '/collection/pure-botanical-ritual',
-            buttonText: 'Discover Pure Ritual',
-            position: 'home_middle',
-            category: categoryMap['cleansers-toners'],
-            status: 'active',
-            sortOrder: 1,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        },
     ];
 
     await bannerCollection.insertMany(bannerItems);

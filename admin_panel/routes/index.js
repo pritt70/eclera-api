@@ -14,11 +14,18 @@ import policyRouter from '../modules/policy/routes.js';
 import announcementRouter from '../modules/announcement/routes.js';
 import socialRouter from '../modules/social/routes.js';
 
+import { selectProduct } from '../modules/product/controller.js';
+import { adminAuth } from '../middleware/auth.js';
+
 const router = express.Router();
 
 router.get('/health', (req, res) => {
     res.json({ status: true, message: 'Admin Panel API operational' });
 });
+
+// Category-based product search endpoints (supports /select_product and /products/select_product)
+router.get('/select_product', adminAuth, selectProduct);
+router.post('/select_product', adminAuth, selectProduct);
 
 router.use('/auth', authRouter);
 router.use('/category', categoryRouter);

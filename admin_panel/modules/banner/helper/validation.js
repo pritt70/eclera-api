@@ -26,7 +26,7 @@ export function validateCreate(data) {
         link: Joi.string().trim().max(500).allow('', null).optional().label('Redirect Link'),
         buttonText: Joi.string().trim().max(50).allow('', null).optional().label('Button Text'),
         position: Joi.string()
-            .valid('home_hero', 'home_middle', 'home_bottom', 'category_top', 'promo_popup', 'auth_popup', 'login_popup')
+            .valid('home_hero', 'category_top', 'promo_popup', 'auth_popup', 'login_popup')
             .default('home_hero')
             .optional()
             .label('Position'),
@@ -49,7 +49,7 @@ export function validateUpdate(data) {
         link: Joi.string().trim().max(500).allow('', null).optional().label('Redirect Link'),
         buttonText: Joi.string().trim().max(50).allow('', null).optional().label('Button Text'),
         position: Joi.string()
-            .valid('home_hero', 'home_middle', 'home_bottom', 'category_top', 'promo_popup', 'auth_popup', 'login_popup')
+            .valid('home_hero', 'category_top', 'promo_popup', 'auth_popup', 'login_popup')
             .optional()
             .label('Position'),
         category: Joi.string().allow('', null).optional().label('Category'),

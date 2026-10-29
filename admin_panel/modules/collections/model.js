@@ -65,6 +65,12 @@ const collectionSchema = new mongoose.Schema(
             },
         ],
         specifications: [collectionSpecificationSchema],
+        products: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Product',
+            },
+        ],
         status: {
             type: String,
             enum: ['active', 'inactive'],
@@ -96,6 +102,7 @@ collectionSchema.index({ name: 'text', description: 'text' });
 collectionSchema.index({ status: 1, sortOrder: 1 });
 collectionSchema.index({ category: 1 });
 collectionSchema.index({ categories: 1 });
+collectionSchema.index({ products: 1 });
 collectionSchema.index({ 'specifications.specification': 1 });
 
 const Collection = mongoose.models.Collection || mongoose.model('Collection', collectionSchema);

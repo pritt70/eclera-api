@@ -345,7 +345,7 @@ export const create = async (req, res) => {
             sku: value.sku ? value.sku.trim() : '',
             barcode: value.barcode ? value.barcode.trim() : '',
             category: value.category,
-            collections: value.collections || [],
+            collections: [],
             description: value.description ? value.description.trim() : '',
             price: Number(value.price) || 0,
             comparePrice: Number(value.comparePrice) || 0,
@@ -469,10 +469,6 @@ export const update = async (req, res) => {
         if (value.seoTitle !== undefined) existing.seoTitle = value.seoTitle.trim();
         if (value.seoDescription !== undefined) existing.seoDescription = value.seoDescription.trim();
         if (value.flipkartUrl !== undefined) existing.flipkartUrl = value.flipkartUrl.trim();
-
-        if (value.collections !== undefined) {
-            existing.collections = Array.isArray(value.collections) ? value.collections : [];
-        }
 
         if (value.images !== undefined) {
             existing.images = parseProductImages(value.images);
@@ -680,3 +676,134 @@ export const reorder = async (req, res) => {
         });
     }
 };
+
+/**
+ * Product search endpoint for category-based product selection
+ * GET /select_product or GET /products/select_product
+ * 
+ * Query Parameters:
+ * - categoryId: Selected category ID (required)
+ * - search: Product name or SKU search query
+ * - page: Page number for pagination (default: 1)
+ * - limit: Maximum number of products per request (default: 20)
+ */
+export const selectProduct = async (req, res) => {
+    try {
+        const queryParams = { ...req.query, ...(req.body || {}) };
+        const rawCategory = queryParams.categoryId || queryParams.category;
+        const search = (queryParams.search || '').toString().trim();
+        const page = Math.max(1, parseInt(queryParams.page || 1, 10));
+        const limit = Math.min(100, Math.max(1, parseInt(queryParams.limit || 20, 10)));
+        const status = (queryParams.status || '').toString().trim();
+
+        if (!rawCategory) {
+            return res.status(400).json({
+                status: false,
+                message: 'categoryId query parameter is required',
+            });
+        }
+
+        // Support single or multiple category IDs
+        let categoryIds = [];
+        if (Array.isArray(rawCategory)) {
+            categoryIds = rawCategory.filter((id) => id && mongoose.Types.ObjectId.isValid(id.toString().trim()));
+        } else if (typeof rawCategory === 'string') {
+            categoryIds = rawCategory
+                .split(',')
+                .map((id) => id.trim())
+                .filter((id) => id && mongoose.Types.ObjectId.isValid(id));
+        }
+
+        if (categoryIds.length === 0) {
+            return res.status(400).json({
+                status: false,
+                message: 'Invalid categoryId format. Must be a valid 24-character hexadecimal ObjectId.',
+            });
+        }
+
+        // Validate that category/categories exist in DB
+        const categoryDocs = await Category.find({
+            _id: { $in: categoryIds.map((id) => new mongoose.Types.ObjectId(id)) },
+        }).select('_id name slug');
+
+        if (categoryDocs.length === 0) {
+            return res.status(404).json({
+                status: false,
+                message: 'Selected category was not found in the database',
+            });
+        }
+
+        const validObjectIds = categoryDocs.map((c) => c._id);
+
+        const filter = {
+            category: validObjectIds.length === 1 ? validObjectIds[0] : { $in: validObjectIds },
+        };
+
+        if (status && status !== 'all') {
+            filter.status = status;
+        }
+
+        // Support searching by product name and SKU
+        if (search) {
+            const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(escapedSearch, 'i');
+            filter.$or = [
+                { name: regex },
+                { sku: regex },
+            ];
+        }
+
+        const skip = (page - 1) * limit;
+
+        const [products, total] = await Promise.all([
+            Product.find(filter)
+                .select('_id name sku slug price comparePrice stock images status category collections')
+                .populate('category', '_id name slug')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Product.countDocuments(filter),
+        ]);
+
+        const totalPages = Math.ceil(total / limit) || 1;
+
+        const normalizedProducts = products.map((p) => {
+            const normImgs = Array.isArray(p.images)
+                ? p.images.map((img) => {
+                    const u = String(img?.url || img?.publicUrl || (typeof img === 'string' ? img : '')).trim();
+                    const k = String(img?.key || '').trim();
+                    return { url: u, publicUrl: u, key: k };
+                })
+                : [];
+            return {
+                ...p,
+                images: normImgs,
+            };
+        });
+
+        return res.status(200).json({
+            status: true,
+            message: 'Products retrieved successfully',
+            data: {
+                products: normalizedProducts,
+                pagination: {
+                    total,
+                    page,
+                    limit,
+                    totalPages,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1,
+                },
+            },
+        });
+    } catch (error) {
+        console.error('Error selecting products by category:', error);
+        return res.status(500).json({
+            status: false,
+            message: 'Failed to retrieve products',
+            error: error.message,
+        });
+    }
+};
+

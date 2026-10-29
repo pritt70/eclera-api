@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Collection from './model.js';
+import Product from '../product/model.js';
 import { generateUniqueSlug, slugify } from './helper/slug.js';
 import {
     validateCreate,
@@ -59,6 +60,65 @@ const parseCollectionSpecifications = (specifications) => {
 };
 
 /**
+ * Validates selected product IDs and checks category-product relationships
+ */
+const validateAndResolveProducts = async (productIds, allowedCategoryIds = [], requireMinOne = false) => {
+    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+        if (requireMinOne) {
+            return { valid: false, message: 'Please select at least one product for this collection.' };
+        }
+        return { valid: true, productObjectIds: [] };
+    }
+
+    const cleanedIds = productIds
+        .map((p) => (typeof p === 'object' && p !== null ? (p._id || p.id) : p))
+        .filter((id) => id && mongoose.Types.ObjectId.isValid(id.toString().trim()))
+        .map((id) => id.toString().trim());
+
+    const uniqueIds = [...new Set(cleanedIds)];
+    if (uniqueIds.length === 0) {
+        if (requireMinOne) {
+            return { valid: false, message: 'Please select at least one product for this collection.' };
+        }
+        return { valid: true, productObjectIds: [] };
+    }
+
+    const objectIds = uniqueIds.map((id) => new mongoose.Types.ObjectId(id));
+    const foundProducts = await Product.find({ _id: { $in: objectIds } })
+        .select('_id name category')
+        .lean();
+
+    if (foundProducts.length !== uniqueIds.length) {
+        return {
+            valid: false,
+            message: 'One or more selected products could not be found in the database.',
+        };
+    }
+
+    // Validate category relationship: each product's category must be among the collection's categories
+    const allowedCatIdStrs = allowedCategoryIds
+        .map((cid) => (cid?._id ? cid._id.toString() : cid ? cid.toString() : ''))
+        .filter(Boolean);
+
+    if (allowedCatIdStrs.length > 0) {
+        for (const prod of foundProducts) {
+            const prodCatStr = prod.category ? prod.category.toString() : '';
+            if (!allowedCatIdStrs.includes(prodCatStr)) {
+                return {
+                    valid: false,
+                    message: `Product "${prod.name}" does not belong to the category assigned to this collection.`,
+                };
+            }
+        }
+    }
+
+    return {
+        valid: true,
+        productObjectIds: objectIds,
+    };
+};
+
+/**
  * List collections with search, status, category filter, and pagination
  * GET /api/admin/collection or POST /api/admin/collection/list
  */
@@ -107,6 +167,7 @@ export const list = async (req, res) => {
             .populate('categories', '_id name slug')
             .populate('specifications.specification', '_id name slug is_veriant is_variant')
             .populate('specifications.options', '_id name sort_order')
+            .populate('products', '_id name sku slug price stock images status')
             .lean();
 
         const normalizedCollections = collections.map((col) => {
@@ -176,6 +237,14 @@ export const getById = async (req, res) => {
             })
             .populate('specifications.specification', '_id name slug display_name is_veriant is_variant options')
             .populate('specifications.options', '_id name sort_order')
+            .populate({
+                path: 'products',
+                select: '_id name sku slug price comparePrice stock images status category',
+                populate: {
+                    path: 'category',
+                    select: '_id name slug',
+                },
+            })
             .lean();
 
         if (!collection) {
@@ -188,11 +257,28 @@ export const getById = async (req, res) => {
         const colImgUrl = (collection.image?.url || collection.image?.publicUrl || '').trim();
         const colImgKey = (collection.image?.key || '').trim();
 
+        const normalizedProducts = Array.isArray(collection.products)
+            ? collection.products.map((p) => {
+                const normImgs = Array.isArray(p.images)
+                    ? p.images.map((img) => {
+                        const u = String(img?.url || img?.publicUrl || (typeof img === 'string' ? img : '')).trim();
+                        const k = String(img?.key || '').trim();
+                        return { url: u, publicUrl: u, key: k };
+                    })
+                    : [];
+                return {
+                    ...p,
+                    images: normImgs,
+                };
+            })
+            : [];
+
         return res.status(200).json({
             status: true,
             message: 'Collection details fetched successfully',
             data: {
                 ...collection,
+                products: normalizedProducts,
                 image: colImgUrl ? { url: colImgUrl, publicUrl: colImgUrl, key: colImgKey } : { url: '', publicUrl: '', key: '' },
             },
         });
@@ -274,6 +360,15 @@ export const create = async (req, res) => {
         // Parse specifications
         const specifications = parseCollectionSpecifications(value.specifications);
 
+        // Validate and resolve products against collection categories (min 1 required)
+        const productValidation = await validateAndResolveProducts(value.products, categories, true);
+        if (!productValidation.valid) {
+            return res.status(400).json({
+                status: false,
+                message: productValidation.message,
+            });
+        }
+
         const newCollection = new Collection({
             name: trimmedName,
             slug,
@@ -282,6 +377,7 @@ export const create = async (req, res) => {
             category: primaryCategory,
             categories,
             specifications,
+            products: productValidation.productObjectIds,
             status: value.status || 'active',
             sortOrder: value.sortOrder || 0,
             seoTitle: value.seoTitle || '',
@@ -290,11 +386,27 @@ export const create = async (req, res) => {
 
         await newCollection.save();
 
+        // Bi-directionally sync products: add newCollection._id to selected products' collections
+        if (productValidation.productObjectIds.length > 0) {
+            await Product.updateMany(
+                { _id: { $in: productValidation.productObjectIds } },
+                { $addToSet: { collections: newCollection._id } }
+            );
+        }
+
         const populated = await Collection.findById(newCollection._id)
             .populate('category', '_id name slug')
             .populate('categories', '_id name slug')
             .populate('specifications.specification', '_id name slug is_veriant is_variant')
             .populate('specifications.options', '_id name sort_order')
+            .populate({
+                path: 'products',
+                select: '_id name sku slug price comparePrice stock images status category',
+                populate: {
+                    path: 'category',
+                    select: '_id name slug',
+                },
+            })
             .lean();
 
         return res.status(201).json({
@@ -415,6 +527,33 @@ export const update = async (req, res) => {
             existing.specifications = parseCollectionSpecifications(value.specifications);
         }
 
+        // Update products with category relationship validation
+        let removedProductIds = [];
+        let addedProductIds = [];
+        if (value.products !== undefined) {
+            const currentCategories = existing.categories?.length > 0
+                ? existing.categories
+                : existing.category
+                ? [existing.category]
+                : [];
+
+            const productValidation = await validateAndResolveProducts(value.products, currentCategories, true);
+            if (!productValidation.valid) {
+                return res.status(400).json({
+                    status: false,
+                    message: productValidation.message,
+                });
+            }
+
+            const prevProductIds = (existing.products || []).map((id) => id.toString());
+            const nextProductIds = productValidation.productObjectIds.map((id) => id.toString());
+
+            removedProductIds = prevProductIds.filter((pId) => !nextProductIds.includes(pId));
+            addedProductIds = nextProductIds.filter((pId) => !prevProductIds.includes(pId));
+
+            existing.products = productValidation.productObjectIds;
+        }
+
         if (value.status !== undefined) {
             existing.status = value.status;
         }
@@ -433,17 +572,58 @@ export const update = async (req, res) => {
 
         await existing.save();
 
+        // Bi-directionally sync products: update collections array on products
+        if (removedProductIds.length > 0) {
+            await Product.updateMany(
+                { _id: { $in: removedProductIds.map((id) => new mongoose.Types.ObjectId(id)) } },
+                { $pull: { collections: existing._id } }
+            );
+        }
+        if (addedProductIds.length > 0) {
+            await Product.updateMany(
+                { _id: { $in: addedProductIds.map((id) => new mongoose.Types.ObjectId(id)) } },
+                { $addToSet: { collections: existing._id } }
+            );
+        }
+
         const updated = await Collection.findById(id)
             .populate('category', '_id name slug')
             .populate('categories', '_id name slug')
             .populate('specifications.specification', '_id name slug is_veriant is_variant')
             .populate('specifications.options', '_id name sort_order')
+            .populate({
+                path: 'products',
+                select: '_id name sku slug price comparePrice stock images status category',
+                populate: {
+                    path: 'category',
+                    select: '_id name slug',
+                },
+            })
             .lean();
+
+        const normalizedProducts = Array.isArray(updated.products)
+            ? updated.products.map((p) => {
+                const normImgs = Array.isArray(p.images)
+                    ? p.images.map((img) => {
+                        const u = String(img?.url || img?.publicUrl || (typeof img === 'string' ? img : '')).trim();
+                        const k = String(img?.key || '').trim();
+                        return { url: u, publicUrl: u, key: k };
+                    })
+                    : [];
+                return {
+                    ...p,
+                    images: normImgs,
+                };
+            })
+            : [];
 
         return res.status(200).json({
             status: true,
             message: 'Collection updated successfully',
-            data: updated,
+            data: {
+                ...updated,
+                products: normalizedProducts,
+            },
         });
     } catch (error) {
         console.error('Error updating collection:', error);
@@ -537,6 +717,12 @@ export const deleteCollection = async (req, res) => {
         }
 
         await Collection.findByIdAndDelete(id);
+
+        // Remove deleted collection from products
+        await Product.updateMany(
+            { collections: id },
+            { $pull: { collections: id } }
+        );
 
         return res.status(200).json({
             status: true,
