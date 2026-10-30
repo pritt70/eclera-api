@@ -64,20 +64,20 @@ export const customerAuth = async (req, res) => {
             let customer = await Customer.findOne({ email: normalizedEmail });
 
             if (mode === 'signup' && customer) {
-                return res.status(400).json({ status: false, message: 'An account with this email address already exists. Please log in.' });
+                return res.status(400).json({ status: false, message: 'This email address is already registered. Please log in to continue.' });
             }
 
             if (mode === 'login' && !customer) {
-                return res.status(404).json({ status: false, message: 'No account found with this email address. Please sign up.' });
+                return res.status(404).json({ status: false, message: 'This email address is not registered yet. Please sign up to create your account.' });
             }
 
             if (customer) {
                 if (customer.status === 'blocked') {
-                    return res.status(403).json({ status: false, message: 'Your account has been blocked. Please contact support.' });
+                    return res.status(403).json({ status: false, message: 'Your account is temporarily suspended. Please contact customer support.' });
                 }
                 const hashedPassword = hashPassword(password);
                 if (customer.password && customer.password !== hashedPassword) {
-                    return res.status(401).json({ status: false, message: 'Incorrect password. Please try again.' });
+                    return res.status(401).json({ status: false, message: 'Incorrect password. Please verify your password and try again.' });
                 }
                 if (!customer.password) {
                     customer.password = hashedPassword;
@@ -126,10 +126,10 @@ export const customerAuth = async (req, res) => {
 
             if (mode === 'signup') {
                 if (customer) {
-                    return res.status(400).json({ status: false, message: 'An account with this mobile number already exists. Please log in.' });
+                    return res.status(400).json({ status: false, message: 'This mobile number is already registered. Please log in with your password.' });
                 }
                 if (!name || !name.trim()) {
-                    return res.status(400).json({ status: false, message: 'Full name is required for registration.' });
+                    return res.status(400).json({ status: false, message: 'Please enter your full name to create an account.' });
                 }
                 const derivedName = name.trim();
                 customer = await Customer.create({
@@ -142,14 +142,14 @@ export const customerAuth = async (req, res) => {
                 });
             } else if (mode === 'login') {
                 if (!customer) {
-                    return res.status(404).json({ status: false, message: 'No account found with this mobile number. Please sign up.' });
+                    return res.status(404).json({ status: false, message: 'This mobile number is not registered yet. Please sign up to create your account.' });
                 }
                 if (customer.status === 'blocked') {
-                    return res.status(403).json({ status: false, message: 'Your account has been blocked. Please contact support.' });
+                    return res.status(403).json({ status: false, message: 'Your account is temporarily suspended. Please contact customer support.' });
                 }
                 const hashedPassword = hashPassword(password);
                 if (customer.password && customer.password !== hashedPassword) {
-                    return res.status(401).json({ status: false, message: 'Incorrect password. Please try again.' });
+                    return res.status(401).json({ status: false, message: 'Incorrect password. Please verify your password and try again.' });
                 }
                 if (!customer.password) {
                     customer.password = hashedPassword;
@@ -159,11 +159,11 @@ export const customerAuth = async (req, res) => {
                 // Unified fallback
                 if (customer) {
                     if (customer.status === 'blocked') {
-                        return res.status(403).json({ status: false, message: 'Your account has been blocked. Please contact support.' });
+                        return res.status(403).json({ status: false, message: 'Your account is temporarily suspended. Please contact customer support.' });
                     }
                     const hashedPassword = hashPassword(password);
                     if (customer.password && customer.password !== hashedPassword) {
-                        return res.status(401).json({ status: false, message: 'Incorrect password. Please try again.' });
+                        return res.status(401).json({ status: false, message: 'Incorrect password. Please verify your password and try again.' });
                     }
                 } else {
                     const derivedName = (name && name.trim()) || `Customer ${cleanPhone.slice(-4)}`;

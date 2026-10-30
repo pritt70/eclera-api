@@ -22,8 +22,8 @@ export const validateCreateCart = (data) => {
             name: Joi.string().trim().required().messages({
                 'any.required': 'Customer name is required',
             }),
-            email: Joi.string().trim().email().required().messages({
-                'any.required': 'Valid customer email is required',
+            email: Joi.string().trim().email().allow('', null).optional().messages({
+                'string.email': 'Valid customer email is required',
             }),
             phone: Joi.string().trim().allow('').optional(),
         }).required(),

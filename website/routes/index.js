@@ -57,8 +57,27 @@ router.get('/announcement', getPublicAnnouncements);
 
 // Public Policies
 router.get('/policies', getPublicPolicies);
+router.post('/policies', getPublicPolicies);
 router.get('/policies/:slug', getPublicPolicyBySlug);
+router.post('/policies/:slug', getPublicPolicyBySlug);
 router.get('/policy/:slug', getPublicPolicyBySlug);
+router.post('/policy/:slug', getPublicPolicyBySlug);
+
+// Public Site Maintenance Mode
+router.get('/maintenance', async (req, res) => {
+    const { getPublicMaintenance } = await import('../../admin_panel/modules/maintenance/controller.js');
+    return getPublicMaintenance(req, res);
+});
+
+// Public Shipping calculation for Checkout
+router.post('/shipping/calculate', async (req, res) => {
+    const { calculateFee } = await import('../../admin_panel/modules/shipping/controller.js');
+    return calculateFee(req, res);
+});
+router.get('/shipping/calculate', async (req, res) => {
+    const { calculateFee } = await import('../../admin_panel/modules/shipping/controller.js');
+    return calculateFee(req, res);
+});
 
 // Public Categories for Header & Navigation
 router.get('/categories', async (req, res) => {
@@ -878,7 +897,7 @@ router.get('/customer/orders', async (req, res) => {
             return res.json({ status: true, data: [] });
         }
 
-        const orders = await Order.find({ $or: orConditions })
+        const orders = await Order.find({ $or: orConditions, isArchived: { $ne: true } })
             .sort({ createdAt: -1 })
             .lean();
 
@@ -1276,6 +1295,31 @@ router.post('/order/create', async (req, res) => {
     } catch (e) {
         console.error('Order creation error:', e);
         return res.status(500).json({ status: false, message: e.message || 'Failed to place order.' });
+    }
+});
+
+// 3.5. Get Live Order Status by Order Number (Direct from database)
+router.get('/order/status/:orderNumber', async (req, res) => {
+    try {
+        const Order = (await import('../../admin_panel/modules/order/model.js')).default;
+        const { orderNumber } = req.params;
+        if (!orderNumber) {
+            return res.status(400).json({ status: false, message: 'Order number is required.' });
+        }
+
+        const order = await Order.findOne({
+            orderNumber: { $regex: new RegExp(`^${orderNumber.trim()}$`, 'i') }
+        }).lean();
+        if (!order) {
+            return res.status(404).json({ status: false, message: 'Order not found.' });
+        }
+
+        return res.json({
+            status: true,
+            data: order,
+        });
+    } catch (e) {
+        return res.status(500).json({ status: false, message: e.message || 'Failed to fetch order status.' });
     }
 });
 

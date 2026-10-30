@@ -82,7 +82,8 @@ const orderSchema = new mongoose.Schema(
             },
             email: {
                 type: String,
-                required: [true, 'Customer email is required'],
+                required: false,
+                default: '',
                 trim: true,
                 lowercase: true,
             },
@@ -146,9 +147,27 @@ const orderSchema = new mongoose.Schema(
         },
         orderStatus: {
             type: String,
-            enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
+            enum: ['pending', 'confirmed', 'shipped', 'delivered', 'returned'],
             default: 'pending',
             trim: true,
+        },
+        isArchived: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+        archivedAt: {
+            type: Date,
+            default: null,
+        },
+        returnReason: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        returnApprovedAt: {
+            type: Date,
+            default: null,
         },
         tracking: {
             carrier: { type: String, trim: true, default: '' },
@@ -171,6 +190,7 @@ orderSchema.index({ orderNumber: 1 }, { unique: true });
 orderSchema.index({ 'customer.email': 1 });
 orderSchema.index({ 'customer.phone': 1 });
 orderSchema.index({ orderStatus: 1 });
+orderSchema.index({ isArchived: 1 });
 orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ createdAt: -1 });
 

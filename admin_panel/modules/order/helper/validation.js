@@ -36,8 +36,7 @@ export const validateCreateOrder = (data) => {
                 'any.required': 'Customer name is required',
                 'string.empty': 'Customer name cannot be empty',
             }),
-            email: Joi.string().trim().email().required().messages({
-                'any.required': 'Customer email is required',
+            email: Joi.string().trim().email().allow('', null).optional().messages({
                 'string.email': 'Valid email is required',
             }),
             phone: Joi.string().trim().allow('').optional(),
@@ -52,15 +51,16 @@ export const validateCreateOrder = (data) => {
         couponCode: Joi.string().trim().uppercase().allow('').optional(),
         shippingFee: Joi.number().min(0).default(0),
         totalAmount: Joi.number().min(0).optional(),
-        paymentMethod: Joi.string().valid('prepaid', 'advance', 'cod', 'online', 'card', 'upi', 'netbanking').default('prepaid'),
+        paymentMethod: Joi.string().valid('prepaid', 'advance', 'cod', 'online', 'card', 'upi', 'upi_qr', 'qr', 'netbanking').default('upi_qr'),
         paymentStatus: Joi.string().valid('pending', 'paid', 'failed', 'refunded').default('pending'),
-        orderStatus: Joi.string().valid('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled').default('pending'),
+        orderStatus: Joi.string().valid('pending', 'confirmed', 'shipped', 'delivered', 'returned').default('pending'),
         tracking: Joi.object({
             carrier: Joi.string().trim().allow('').optional(),
             trackingNumber: Joi.string().trim().allow('').optional(),
             trackingUrl: Joi.string().trim().allow('').optional(),
         }).optional(),
         notes: Joi.string().trim().allow('').optional(),
+        returnReason: Joi.string().trim().allow('').optional(),
     });
 
     return schema.validate(data, { abortEarly: false, stripUnknown: true });
@@ -77,15 +77,16 @@ export const validateUpdateOrder = (data) => {
             phone: Joi.string().trim().allow('').optional(),
         }).optional(),
         shippingAddress: shippingAddressSchema.optional(),
-        orderStatus: Joi.string().valid('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled').optional(),
+        orderStatus: Joi.string().valid('pending', 'confirmed', 'shipped', 'delivered', 'returned').optional(),
         paymentStatus: Joi.string().valid('pending', 'paid', 'failed', 'refunded').optional(),
-        paymentMethod: Joi.string().valid('prepaid', 'advance', 'cod', 'online', 'card', 'upi', 'netbanking').optional(),
+        paymentMethod: Joi.string().valid('prepaid', 'advance', 'cod', 'online', 'card', 'upi', 'upi_qr', 'qr', 'netbanking').optional(),
         tracking: Joi.object({
             carrier: Joi.string().trim().allow('').optional(),
             trackingNumber: Joi.string().trim().allow('').optional(),
             trackingUrl: Joi.string().trim().allow('').optional(),
         }).optional(),
         notes: Joi.string().trim().allow('').optional(),
+        returnReason: Joi.string().trim().allow('').optional(),
     });
 
     return schema.validate(data, { abortEarly: false, stripUnknown: true });
@@ -96,8 +97,9 @@ export const validateChangeStatus = (data) => {
         id: Joi.string().required().messages({
             'any.required': 'Order ID is required',
         }),
-        orderStatus: Joi.string().valid('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled').optional(),
+        orderStatus: Joi.string().valid('pending', 'confirmed', 'shipped', 'delivered', 'returned').optional(),
         paymentStatus: Joi.string().valid('pending', 'paid', 'failed', 'refunded').optional(),
+        returnReason: Joi.string().trim().allow('').optional(),
     });
 
     return schema.validate(data, { abortEarly: false, stripUnknown: true });

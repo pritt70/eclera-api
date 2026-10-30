@@ -13,6 +13,8 @@ import abandonedCartRouter from '../modules/abandoned_cart/routes.js';
 import policyRouter from '../modules/policy/routes.js';
 import announcementRouter from '../modules/announcement/routes.js';
 import socialRouter from '../modules/social/routes.js';
+import shippingRouter from '../modules/shipping/routes.js';
+import maintenanceRouter from '../modules/maintenance/routes.js';
 
 import { selectProduct } from '../modules/product/controller.js';
 import { adminAuth } from '../middleware/auth.js';
@@ -55,5 +57,8 @@ router.use('/announcement', announcementRouter);
 router.use('/announcements', announcementRouter);
 router.use('/social', socialRouter);
 router.use('/social-media', socialRouter);
+router.use('/shipping', shippingRouter);
+router.use('/shippings', shippingRouter);
+router.use('/maintenance', maintenanceRouter);
 
 export default router;

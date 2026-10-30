@@ -64,7 +64,8 @@ const abandonedCartSchema = new mongoose.Schema(
             },
             email: {
                 type: String,
-                required: [true, 'Customer email is required'],
+                required: false,
+                default: '',
                 trim: true,
                 lowercase: true,
             },

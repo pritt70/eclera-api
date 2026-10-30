@@ -6,136 +6,6 @@ import {
     validateChangeStatus,
 } from './helper/validation.js';
 
-// Predefined initial seed policies if database is empty
-const defaultPolicies = [
-    {
-        title: 'Shipping Policy',
-        slug: 'shipping-policy',
-        type: 'shipping',
-        sortOrder: 1,
-        summary: 'Standard delivery in 3-5 business days. Free shipping on all prepaid orders above ₹499 across India.',
-        content: `### 1. Order Processing Time
-All orders placed on **Eclera Cosmetics** are processed within 24 to 48 business hours (excluding Sundays and national holidays). Once your order is dispatched, you will receive an SMS and email notification with an active tracking link.
-
-### 2. Shipping Charges & Delivery Timelines
-* **Standard Delivery:** 3 - 5 business days for metro cities, 5 - 7 business days for regional/remote areas.
-* **Shipping Rates:**
-  * **Free Shipping:** Applicable on all orders totaling ₹499 or above.
-  * **Flat Delivery Fee:** A nominal delivery charge of ₹50 is applied on orders below ₹499.
-  * **Cash on Delivery (COD):** Available for select pin codes with a convenience fee of ₹40.
-
-### 3. Courier Partners
-We partner with leading, verified logistics carriers including BlueDart, Delhivery, Xpressbees, and DTDC to ensure timely and temperature-sensitive handling of our skincare and cosmetics products.
-
-### 4. Tracking Your Order
-You can track the real-time journey of your package through the **Track Order** link sent via SMS/Email, or from your **My Account** section.
-
-### 5. Damaged or Tampered Packages
-If you receive a package that appears damaged, opened, or tampered with, please do not accept the delivery. Capture clear photos/videos and immediately contact our customer support team at **support@eclera.com** within 24 hours.`,
-        status: 'active',
-    },
-    {
-        title: 'Return & Refund Policy',
-        slug: 'return-policy',
-        type: 'return',
-        sortOrder: 2,
-        summary: '7-day replacement or refund for damaged, missing, or defective items with verified proof.',
-        content: `### 1. Return Window
-At **Eclera**, customer satisfaction and safety are our highest priorities. We offer a **7-Day Return/Replacement Window** from the date of confirmed delivery for eligible cases.
-
-### 2. Eligibility for Returns & Exchanges
-Given the personal and hygienic nature of cosmetics and skincare products, returns are accepted under the following conditions:
-* You received a damaged or leaking product.
-* The item delivered is expired, defective, or incorrect (different variant/shade).
-* An item is missing from the delivered package.
-* **Condition:** Items must be in their original packaging, unused, unwashed, and with all protective seals intact.
-
-### 3. Non-Returnable Items
-* Opened, swatched, or partially used skincare and cosmetic items cannot be returned due to hygiene protocols.
-* Clearance, sale, or promotional gift items unless damaged during transit.
-
-### 4. Refund Process
-* Once your return request is approved and the product is inspected at our fulfillment center, refunds will be processed within **5 to 7 business days**.
-* **Prepaid Orders:** Refund will be credited directly to the original payment source (Credit/Debit Card, UPI, NetBanking).
-* **Cash on Delivery Orders:** Refund will be transferred via NEFT/UPI after customer provides bank details.
-
-### 5. How to Initiate a Return
-Email us at **returns@eclera.com** or message our WhatsApp Helpdesk with your Order ID, clear photos of the outer box, invoice, and the affected item.`,
-        status: 'active',
-    },
-    {
-        title: 'Terms & Conditions',
-        slug: 'terms-and-conditions',
-        type: 'terms',
-        sortOrder: 3,
-        summary: 'General terms and conditions for browsing, purchasing, and interacting with Eclera Cosmetics.',
-        content: `### 1. Introduction
-Welcome to **Eclera Cosmetics** (referred to as "we", "us", or "our"). By accessing or making purchases on our website, you agree to comply with and be bound by the following Terms & Conditions.
-
-### 2. Account Registration & Security
-* To access certain features or purchase products, you may need to register an account.
-* You are responsible for safeguarding your login credentials and for all activities conducted under your account.
-
-### 3. Product Information & Pricing
-* We strive to present our skincare formulations, shades, ingredients, and packaging as accurately as possible. However, individual screen calibrations may slightly alter color perception.
-* Prices listed on the website are in Indian Rupees (INR) inclusive of applicable GST taxes.
-* Eclera reserves the right to update product prices, specifications, or discontinue products at any time without prior notice.
-
-### 4. Intellectual Property
-All content including logos, graphics, text, images, product names, and design layouts are the exclusive property of Eclera Cosmetics and are protected under international trademark and copyright laws.
-
-### 5. Patch Test Disclaimer
-While all our formulations are dermatologically tested, skin types vary. We strongly recommend conducting a 24-hour patch test before full application of any new skincare formulation.
-
-### 6. Governing Law
-These Terms of Service and any separate agreements shall be governed by and construed in accordance with the laws of India, under the jurisdiction of Ahmedabad, Gujarat.`,
-        status: 'active',
-    },
-    {
-        title: 'Privacy Policy',
-        slug: 'privacy-policy',
-        type: 'privacy',
-        sortOrder: 4,
-        summary: 'How Eclera protects your personal information, encrypted payments, and browsing preferences.',
-        content: `### 1. Information We Collect
-We collect necessary personal information to process your orders seamlessly, including:
-* Full name, shipping address, billing address, and contact phone number.
-* Email address for order status, invoices, and newsletter updates (optional).
-* Device information, IP address, and browser cookies to personalize your shopping experience.
-
-### 2. Payment Security
-Eclera does **NOT** store your credit/debit card numbers, CVVs, or NetBanking passwords. All financial transactions are securely processed through PCI-DSS Level 1 certified payment gateways with 256-bit SSL encryption.
-
-### 3. How We Use Your Data
-* To process, pack, and deliver your orders.
-* To communicate order tracking, cancellations, and customer support inquiries.
-* To send relevant product announcements or exclusive offers (you may unsubscribe at any time).
-
-### 4. Zero Data Selling
-We respect your privacy. Eclera does not sell, rent, or trade your personal information to third-party advertisers or marketers.
-
-### 5. Contact Us
-For any privacy-related queries or to request data removal, please contact our Data Protection Officer at **privacy@eclera.com**.`,
-        status: 'active',
-    },
-];
-
-/**
- * Helper to ensure default policies exist
- */
-const ensureDefaultPolicies = async () => {
-    try {
-        const count = await Policy.countDocuments();
-        if (count === 0) {
-            console.log('[Policy Module] Initializing default policies in database...');
-            await Policy.insertMany(defaultPolicies);
-            console.log('[Policy Module] Default policies seeded successfully.');
-        }
-    } catch (err) {
-        console.error('[Policy Module] Error seeding default policies:', err.message);
-    }
-};
-
 /**
  * Convert string to URL-safe slug
  */
@@ -154,8 +24,6 @@ const slugify = (text) => {
  */
 export const list = async (req, res) => {
     try {
-        await ensureDefaultPolicies();
-
         const page = Math.max(1, parseInt(req.body?.page || req.query?.page || 1, 10));
         const limit = Math.max(1, Math.min(100, parseInt(req.body?.limit || req.query?.limit || 20, 10)));
         const search = (req.body?.search || req.query?.search || '').trim();
@@ -511,8 +379,6 @@ export const deletePolicy = async (req, res) => {
  */
 export const getPublicPolicies = async (req, res) => {
     try {
-        await ensureDefaultPolicies();
-
         const policies = await Policy.find({ status: 'active' })
             .select('title slug type summary content updatedAt')
             .sort({ sortOrder: 1, updatedAt: -1 })
@@ -538,8 +404,6 @@ export const getPublicPolicies = async (req, res) => {
  */
 export const getPublicPolicyBySlug = async (req, res) => {
     try {
-        await ensureDefaultPolicies();
-
         const slug = (req.params.slug || req.query.slug || '').trim().toLowerCase();
 
         if (!slug) {

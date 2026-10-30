@@ -6,6 +6,8 @@ import {
     create,
     update,
     changeStatus,
+    archive,
+    unarchive,
     deleteOrder,
 } from './controller.js';
 
@@ -36,6 +38,10 @@ router.put('/:id', update);
 // Status
 router.post('/change-status', changeStatus);
 router.patch('/change-status', changeStatus);
+
+// Archive & Unarchive
+router.post('/archive', archive);
+router.post('/unarchive', unarchive);
 
 // Delete
 router.post('/delete', deleteOrder);
